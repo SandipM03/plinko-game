@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16
+    container_name: plinko-db
+    restart: always
+    environment:
+      POSTGRES_USER: plinko
+      POSTGRES_PASSWORD: plinko_secret
+      POSTGRES_DB: plinko
+    volumes:
+      - plinko_pgdata:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+
+  app:
+    build: .
+    container_name: plinko-app
+    restart: always
+    ports:
+      - "3001:3000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://plinko:plinko_secret@db:5432/plinko
+
+volumes:
+  plinko_pgdata:

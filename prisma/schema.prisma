@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Round {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  status    String   // CREATED | STARTED | REVEALED
+
+  // Fairness
+  nonce        String
+  commitHex    String   // SHA256(serverSeed:nonce)
+  serverSeed   String?  // revealed post-round
+  clientSeed   String?
+  combinedSeed String?  // SHA256(serverSeed:clientSeed:nonce)
+  pegMapHash   String?
+
+  // Game
+  rows             Int     @default(12)
+  dropColumn       Int?    // 0..12
+  binIndex         Int?    // 0..12
+  payoutMultiplier Float?
+  betCents         Int?
+  pathJson         Json?   // decisions per row for replay
+
+  revealedAt DateTime?
+}

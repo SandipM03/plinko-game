@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { generateCombinedSeed } from "@/lib/engine/crypto";
 import { simulateRound } from "@/lib/engine/plinko";
-import { Prisma } from "@prisma/client";
 
 export async function POST(
   request: NextRequest,
@@ -51,7 +50,7 @@ export async function POST(
         binIndex: result.binIndex,
         payoutMultiplier: result.payoutMultiplier,
         betCents,
-        pathJson: result.path as Prisma.JsonArray,
+        pathJson: result.path,
       },
     });
 

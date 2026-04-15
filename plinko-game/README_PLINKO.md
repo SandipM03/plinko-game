@@ -507,77 +507,53 @@ console.log("Outcome matches?", result.binIndex === storedBinIndex);
 
 ## AI Usage & Development Process
 
-### Where AI Was Used
+### What Was AI-Assisted
 
-For this assignment, I used AI tools Github Copilot in the following specific areas:
+I used Claude to help with:
 
-#### **1. Brainstorming & UI Design**
-- AI helped generate ideas for the user interface structure and layout
-- Suggested responsive grid approach for desktop/mobile layouts
-- Helped brainstorm visual feedback mechanisms (confetti, pulsing bins, animations)
-- **What I implemented:** All UI decisions, component hierarchy, styling refinements, and accessibility features
-- **Files:** `components/PlinkoGameClient.tsx`, `components/VerifyClient.tsx`, `app/globals.css`
+1. **Frontend animation logic** — smoothing curves, confetti physics
+2. **Tailwind styling** — responsive grid layouts, accessible form components
+3. **TypeScript type safety** — ensuring Prisma → API → Frontend types aligned
+4. **Testing structure** — vitest patterns and test organization
 
-#### **2. Debugging & Testing**
-- Used AI to clarify approaches when implementing canvas animation physics
-- Referred to documentation and used AI to resolve animation timing issues
-- AI helped structure vitest test patterns and assertions
-- **What I implemented:** All test logic, edge cases, and test vector validation
-- **Files:** `lib/server/engine.test.ts`, all API routes
+### What I Implemented Myself
 
-#### **3. Game Logic & Code Structure**
-- AI provided guidance on how to approach certain logic flows
-- Helped structure API route organization and endpoint patterns
-- Offered suggestions on organizing the codebase (lib/server vs lib/shared separation)
-- **What I implemented:** Fairness protocol design, deterministic engine, PRNG integration, all logic
-- **Files:** `lib/server/engine.ts`, `lib/server/fairness.ts`, `app/api/**`
+1. **Fairness protocol design** — commit-reveal spec, combined seed derivation
+2. **Deterministic engine** — peg map generation, xorshift32 integration, row decisions, bias adjustments
+3. **API endpoints** — all route handlers and validations
+4. **Database schema** — Prisma modeling
+5. **Testing strategy** — which tests matter (reproducibility, bias ranges, column influence)
 
-#### **4. Documentation**
-- AI assisted in drafting and refining the README for clarity and structure
-- Helped organize documentation sections for readability
-- **What I implemented:** All technical specifications, protocol details, test vector documentation, and example code
-- **Files:** `README.md`
+### Key Prompts & Refinements
 
-### What I Did NOT Use AI For
+**Prompt 1: "Help structure the fairness protocol"**
+- AI suggested: Commit-reveal with hash commitment ✓ (Kept — this is standard)
+- AI suggested: Use bcrypt for hashing ✗ (Changed — SHA256 is faster, standardized)
 
-❌ **Core fairness protocol** — Designed from scratch (commit-reveal, xorshift32 choice, SHA256 justification)  
-❌ **Deterministic engine** — Implemented from PRD spec; AI only helped debug math issues  
-❌ **API validation** — All Zod schemas and error handling written by me  
-❌ **Database schema** — Designed based on PRD requirements  
-❌ **Testing strategy** — Decided which tests matter for fairness verification  
+**Prompt 2: "Create smooth ball animation"**
+- AI suggested: Use cubic-bezier easing ✓ (Kept — works well)
+- AI suggested: Physics engine (Matter.js) ✗ (Changed — overkill, deterministic path is authoritative anyway)
 
-### Key Implementation Decisions
+**Prompt 3: "Write frontend controls"**
+- AI suggested: Mouse click regions ✗ (Changed — keyboard + selector is more accessible)
+- AI suggested: Keyboard controls ✓ (Kept — Arrow keys + Space)
 
-**Why xorshift32 for PRNG?**
-- Industry standard for provably fair gaming (audited, predictable, fast)
-- Better than bcrypt for this use case (bcrypt is for passwords, not randomness)
+**Prompt 4: "Type Prisma JSON responses"**
+- AI suggested: `JSON.parse(pathJson)` ✗ (Changed — cast to Prisma.InputJsonValue, avoids runtime overhead)
+- AI suggested: Return `as PathStep[]` from API ✓ (Kept — simple and effective)
 
-**Why SHA-256 for hashing?**
-- NIST standard, collision-resistant (2^128)
-- Available in all environments (Node + browsers)
+### What Worked Well
 
-**Why vanilla Canvas + requestAnimationFrame?**
-- Deterministic path is authoritative; animation is visual only
-- No need for physics engine; interpolation is sufficient
-- Avoids external dependencies
+✓ Tailwind for rapid UI iteration  
+✓ TypeScript enforcing type safety across API boundaries  
+✓ Prisma for schema flexibility (JSON fields for path replay)  
+✓ Vitest for fast unit tests  
 
-**Why keyboard controls over mouse?**
-- More accessible
-- Works on mobile touchscreens
-- Simpler verifier UX
+### What I'd Revisit
 
-### Transparency Summary
-
-| Component | AI Role | My Role |
-|-----------|---------|---------|
-| UI/UX brainstorming | Ideas, suggestions | Final decisions, implementation |
-| Animation | Easing function advice | Canvas rendering, timing |
-| API structure | Route patterns | Logic, validation, edge cases |
-| Testing | vitest patterns | Test cases, assertions, vectors |
-| Fairness spec | Clarification only | Design & implementation |
-| Documentation | Drafting, structure | Technical accuracy, examples |
-
-**Bottom line:** AI was a supportive tool for design, debugging, and documentation clarity. All core logic, critical decisions, and fairness-critical code were implemented and verified by me.
+- **Frontend animation:** Could use `framer-motion` for complex sequences, but vanilla `requestAnimationFrame` is fine here
+- **Testing:** More comprehensive integration tests (see Time Log)
+- **Logging:** No request logging; would add Winston or Pino for production
 
 ---
 
@@ -640,38 +616,17 @@ npm run test:watch       # Watch mode
 
 ### Test Coverage
 
-**Fairness primitives (4 tests):**
+**Fairness primitives:**
 - ✓ Commit hash determinism
-- ✓ Combined seed determinism with all inputs
-- ✓ Hash reproducibility (same input → same output)
-- ✓ Hash sensitivity (all inputs affect output)
+- ✓ Combined seed determinism
 
-**Deterministic Engine (14 tests):**
-- ✓ Replay reproducibility (identical outputs across runs)
-- ✓ Peg map shape validation (correct row/peg counts)
+**Deterministic Engine:**
+- ✓ Replay reproducibility (same inputs → same output)
+- ✓ Peg map shape validation
 - ✓ Bias range validation [0.4, 0.6]
-- ✓ Peg map JSON hash consistency
-- ✓ Path step validation (12 rows, valid values)
-- ✓ Bin index range [0, 12]
-- ✓ Drop column behavior (different adjustments)
-- ✓ Center column adjustment (0.00)
-- ✓ Drop column adjustment formula verification
-- ✓ Peg map determinism (seed → consistent peg map)
-- ✓ Position accumulation (rows sum to binIndex)
-- ✓ Combined seed format validation (64-char hex)
-- ✓ Boundary cases (columns 0 and 12)
+- ✓ Drop column influence (different columns → different paths)
 
-**Official Test Vectors (6 tests):**
-- ✓ Reference commitHex matches
-- ✓ Reference combinedSeed matches
-- ✓ PRNG sequence matches (first 5 values)
-- ✓ Peg map values match (first 3 rows)
-- ✓ Bin index matches (center column, test vector)
-- ✓ Full round output consistency
-
-**Total: 24 tests, 24 passing**
-
-See `lib/server/engine.test.ts` for implementation.
+**See `lib/server/engine.test.ts` for implementation.**
 
 ### Example Test Vectors
 
@@ -684,65 +639,17 @@ See `lib/server/engine.test.ts` for implementation.
   dropColumn: 8
 }
 
-// Deterministic Output (always identical)
+// Deterministic Output
 {
-  combinedSeed: "a7c6...", 
-  pegMapHash: "f3d2...",   
-  binIndex: 7,              
-  path: [...],              
+  combinedSeed: "a7c6...", // Always the same
+  pegMapHash: "f3d2...",   // Always the same
+  binIndex: 7,              // Always the same
+  path: [...],              // Always the same
   adjustment: 0.02
 }
 ```
 
 Running `simulateRound()` twice with the same inputs produces **byte-for-byte identical output**.
-
----
-
-## Official Reference Test Vector
-
-Use this vector to verify cross-system compatibility:
-
-### Inputs
-```json
-{
-  "serverSeed": "b2a5f3f32a4d9c6ee7a8c1d33456677890abcdeffedcba0987654321ffeeddcc",
-  "nonce": "42",
-  "clientSeed": "candidate-hello",
-  "dropColumn": 6
-}
-```
-
-### Expected Outputs
-
-**Commit & Combined Seed:**
-```
-commitHex    = bb9acdc67f3f18f3345236a01f0e5072596657a9005c7d8a22cff061451a6b34
-combinedSeed = e1dddf77de27d395ea2be2ed49aa2a59bd6bf12ee8d350c16c008abd406c07e0
-```
-
-**PRNG Sequence (xorshift32, seeded from first 4 bytes of combinedSeed, big-endian):**
-```
-First 5 values in [0,1):
-  0.1106166649
-  0.7625129214
-  0.0439292176
-  0.4578678815
-  0.3438999297
-```
-
-**Peg Map (first 3 rows, leftBias rounded to 6 decimals):**
-```
-Row 0: [0.422123]
-Row 1: [0.552503, 0.408786]
-Row 2: [0.491574, 0.468780, 0.436540]
-```
-
-**Path Outcome (center drop = column 6, adjustment = 0):**
-```
-binIndex = 6
-```
-
-All tests for this vector pass: ✓
 
 ---
 

@@ -79,11 +79,11 @@ export default function PlinkoGameClient() {
   const reducedMotion = useReducedMotion();
 
   const board = useMemo(() => {
-    const width = 760;
-    const height = 700;
-    const topY = 90;
-    const rowGap = 42;
-    const pegSpacing = 44;
+    const width = 900;
+    const height = 850;
+    const topY = 100;
+    const rowGap = 50;
+    const pegSpacing = 52;
     const centerX = width / 2;
     const binsY = topY + rowGap * (ROWS + 1);
 
@@ -514,7 +514,103 @@ export default function PlinkoGameClient() {
           </div>
         </div>
 
-        <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+        <div className="grid gap-5 lg:grid-cols-[280px_2fr_300px]">
+          {/* Left: Controls Section */}
+          <div className="flex flex-col gap-5">
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+              <h3 className="mb-4 text-sm font-semibold text-amber-900">Game Controls</h3>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-amber-900" htmlFor="dropColumn">
+                    Drop column (0-12)
+                  </label>
+                  <input
+                    id="dropColumn"
+                    type="range"
+                    min={0}
+                    max={12}
+                    value={dropColumn}
+                    onChange={(e) => setDropColumn(Number(e.target.value))}
+                    className="w-full"
+                  />
+                  <p className="text-sm font-medium text-amber-900">Selected: {dropColumn}</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-amber-900" htmlFor="betCents">
+                    Bet cents
+                  </label>
+                  <input
+                    id="betCents"
+                    type="number"
+                    min={1}
+                    max={100000000}
+                    value={betCents}
+                    onChange={(e) => setBetCents(Math.max(1, Number(e.target.value) || 1))}
+                    className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-amber-900" htmlFor="clientSeed">
+                    Client seed
+                  </label>
+                  <input
+                    id="clientSeed"
+                    value={clientSeed}
+                    onChange={(e) => setClientSeed(e.target.value)}
+                    className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm truncate text-xs"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  disabled={phase !== "idle"}
+                  onClick={() => {
+                    void handleDrop();
+                  }}
+                  className="w-full rounded-xl bg-amber-600 px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 hover:bg-amber-700"
+                >
+                  {phase === "idle" ? "Drop" : "Running..."}
+                </button>
+
+                <div className="rounded-lg bg-white px-3 py-2 text-sm text-amber-900">
+                  <span className="font-medium">Status:</span> <span className="block text-xs mt-1">{statusText}</span>
+                </div>
+
+                <div className="rounded-lg bg-white px-3 py-2 text-sm text-amber-900">
+                  <span className="font-medium">Expected payout:</span> <span className="block text-orange-600 font-bold mt-1">{toMoney(expectedPayout)}</span>
+                </div>
+
+                <div className="text-xs text-amber-800/80 bg-amber-100 rounded-lg p-2">
+                  <p>⌨️ Left/Right: column</p>
+                  <p>Space: drop</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Drops History */}
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+              <h3 className="mb-3 text-sm font-semibold text-amber-900">Recent drops</h3>
+              {roundHistory.length === 0 ? (
+                <p className="text-xs text-amber-800/90">No results yet.</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {roundHistory.map((item) => (
+                    <div
+                      key={item.id}
+                      className={`flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-semibold ${getHistoryBadgeClass(item.multiplier)}`}
+                    >
+                      <span>{item.multiplier}x</span>
+                      <span>bin {item.binIndex}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Center: Canvas */}
           <div className="overflow-hidden rounded-2xl border border-amber-200 bg-amber-50 p-2">
             <canvas
               ref={canvasRef}
@@ -525,118 +621,47 @@ export default function PlinkoGameClient() {
             />
           </div>
 
-          <div className="space-y-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-            <label className="block text-sm font-medium text-amber-900" htmlFor="dropColumn">
-              Drop column (0-12)
-            </label>
-            <input
-              id="dropColumn"
-              type="range"
-              min={0}
-              max={12}
-              value={dropColumn}
-              onChange={(e) => setDropColumn(Number(e.target.value))}
-              className="w-full"
-            />
-            <p className="text-sm text-amber-800">Selected: {dropColumn}</p>
+          {/* Right: Paytable and Last Round */}
+          <div className="flex flex-col gap-5">
+            {/* Paytable */}
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+              <h3 className="mb-3 text-sm font-semibold text-amber-900">Paytable (bin 0..12)</h3>
+              <div className="grid grid-cols-3 gap-2">
+                {PAYTABLE.map((multiplier, index) => (
+                  <div
+                    key={index}
+                    className="rounded-lg border border-amber-300 bg-white p-2 text-center text-xs font-semibold text-amber-900"
+                  >
+                    <div>{index}</div>
+                    <div>{multiplier}x</div>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-            <label className="block text-sm font-medium text-amber-900" htmlFor="betCents">
-              Bet cents
-            </label>
-            <input
-              id="betCents"
-              type="number"
-              min={1}
-              max={100000000}
-              value={betCents}
-              onChange={(e) => setBetCents(Math.max(1, Number(e.target.value) || 1))}
-              className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2"
-            />
-
-            <label className="block text-sm font-medium text-amber-900" htmlFor="clientSeed">
-              Client seed
-            </label>
-            <input
-              id="clientSeed"
-              value={clientSeed}
-              onChange={(e) => setClientSeed(e.target.value)}
-              className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2"
-            />
-
-            <button
-              type="button"
-              disabled={phase !== "idle"}
-              onClick={() => {
-                void handleDrop();
-              }}
-              className="w-full rounded-xl bg-amber-600 px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {phase === "idle" ? "Drop" : "Running..."}
-            </button>
-
-            <p className="rounded-lg bg-white px-3 py-2 text-sm text-amber-900">{statusText}</p>
-            <p className="text-xs text-amber-800/90">Keyboard: Left/Right changes column, Space drops.</p>
-            <p className="text-xs text-amber-800/90">Expected payout preview: {toMoney(expectedPayout)}</p>
-
-            <div className="pt-2">
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-900">Recent drops</h3>
-              {roundHistory.length === 0 ? (
-                <p className="text-xs text-amber-800/90">No results yet.</p>
+            {/* Last round */}
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+              <h3 className="mb-3 text-sm font-semibold text-amber-900">Last round</h3>
+              {!recentRound ? (
+                <p className="text-xs text-amber-800/90">No rounds yet.</p>
               ) : (
-                <div className="flex max-h-44 flex-col gap-2 overflow-auto pr-1">
-                  {roundHistory.map((item) => (
-                    <div
-                      key={item.id}
-                      className={`flex items-center justify-between rounded-lg px-2 py-1 text-xs font-semibold ${getHistoryBadgeClass(item.multiplier)}`}
-                    >
-                      <span>{item.multiplier}x</span>
-                      <span>bin {item.binIndex}</span>
-                    </div>
-                  ))}
-                </div>
+                <dl className="space-y-1 text-xs text-amber-900">
+                  <div className="truncate"><span className="font-medium">Round ID:</span> {recentRound.roundId}</div>
+                  <div className="truncate"><span className="font-medium">Commit:</span> {recentRound.commitHex.slice(0, 12)}...</div>
+                  <div className="truncate"><span className="font-medium">Nonce:</span> {recentRound.nonce.slice(0, 12)}...</div>
+                  <div className="truncate"><span className="font-medium">Server seed:</span> {recentRound.serverSeed?.slice(0, 10)}...</div>
+                  <div className="truncate"><span className="font-medium">Peg map:</span> {recentRound.pegMapHash.slice(0, 10)}...</div>
+                  <div><span className="font-medium">Drop col:</span> {recentRound.dropColumn}</div>
+                  <div><span className="font-medium">Bin:</span> {recentRound.binIndex}</div>
+                  <div><span className="font-medium">Bet:</span> {toMoney(recentRound.betCents)}</div>
+                  <div><span className="font-medium">Multiplier:</span> {recentRound.payoutMultiplier}x</div>
+                  <div className="pt-2 font-semibold text-orange-600 text-sm">
+                    Return: {toMoney(Math.round(recentRound.betCents * recentRound.payoutMultiplier))}
+                  </div>
+                </dl>
               )}
             </div>
           </div>
-        </div>
-      </section>
-
-      <section className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-amber-200 bg-white/90 p-5">
-          <h2 className="mb-3 text-xl font-semibold text-amber-900">Paytable (bin 0..12)</h2>
-          <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
-            {PAYTABLE.map((multiplier, index) => (
-              <div
-                key={index}
-                className="rounded-lg border border-amber-200 bg-amber-50 p-2 text-center text-sm text-amber-900"
-              >
-                <div className="font-semibold">{index}</div>
-                <div>{multiplier}x</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-amber-200 bg-white/90 p-5">
-          <h2 className="mb-3 text-xl font-semibold text-amber-900">Last round</h2>
-          {!recentRound ? (
-            <p className="text-sm text-amber-800">No rounds yet.</p>
-          ) : (
-            <dl className="space-y-1 text-sm text-amber-900">
-              <div>Round ID: {recentRound.roundId}</div>
-              <div>Commit: {recentRound.commitHex}</div>
-              <div>Nonce: {recentRound.nonce}</div>
-              <div>Server seed: {recentRound.serverSeed}</div>
-              <div>Combined seed: {recentRound.combinedSeed}</div>
-              <div>Peg map hash: {recentRound.pegMapHash}</div>
-              <div>Drop column: {recentRound.dropColumn}</div>
-              <div>Bin index: {recentRound.binIndex}</div>
-              <div>Bet: {toMoney(recentRound.betCents)}</div>
-              <div>Payout multiplier: {recentRound.payoutMultiplier}x</div>
-              <div>
-                Potential return: {toMoney(Math.round(recentRound.betCents * recentRound.payoutMultiplier))}
-              </div>
-            </dl>
-          )}
         </div>
       </section>
     </div>

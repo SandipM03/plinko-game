@@ -5,20 +5,20 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --color-brand-50: #eef2ff;
-  --color-brand-100: #e0e7ff;
-  --color-brand-200: #c7d2fe;
-  --color-brand-300: #a5b4fc;
-  --color-brand-400: #818cf8;
-  --color-brand-500: #6366f1;
-  --color-brand-600: #4f46e5;
-  --color-brand-700: #4338ca;
-  --color-brand-800: #3730a3;
-  --color-brand-900: #312e81;
-  --color-brand-950: #1e1b4b;
+  --color-brand-50: #eefbf8;
+  --color-brand-100: #d4f6ee;
+  --color-brand-200: #a8eadf;
+  --color-brand-300: #79d9cb;
+  --color-brand-400: #44c3b4;
+  --color-brand-500: #22b6a4;
+  --color-brand-600: #169488;
+  --color-brand-700: #126f67;
+  --color-brand-800: #0d4f4b;
+  --color-brand-900: #0a3c40;
+  --color-brand-950: #061e24;
 
-  --color-accent-500: #f43f5e;
-  --color-accent-600: #e11d48;
+  --color-accent-500: #ff8b3d;
+  --color-accent-600: #ff6d1f;
 
   --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-bounce-subtle: bounce-subtle 1s infinite;
@@ -36,9 +36,29 @@
 }
 
 body {
-  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  background:
+    radial-gradient(circle at top, rgba(66, 245, 191, 0.14), transparent 32%),
+    radial-gradient(circle at 85% 20%, rgba(255, 139, 61, 0.16), transparent 24%),
+    linear-gradient(180deg, #0a0f1c 0%, #0f1728 45%, #121c2e 100%);
   background-attachment: fixed;
   font-family: var(--font-sans), sans-serif;
+  color: #f3f7fb;
+}
+
+::selection {
+  background: rgba(255, 139, 61, 0.35);
+  color: #fff;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.2;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.85), transparent 95%);
 }
 
 @media (prefers-reduced-motion: reduce) {

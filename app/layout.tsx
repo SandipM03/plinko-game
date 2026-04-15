@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
-import { Inter, Geist } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
-import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
 export const metadata: Metadata = {
 };
@@ -14,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("dark", "h-full", "antialiased", "font-sans", geist.variable)}>
+    <html lang="en" className={`dark h-full antialiased font-sans ${spaceGrotesk.variable}`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

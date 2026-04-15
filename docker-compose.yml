@@ -7,7 +7,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: plinko
-      POSTGRES_PASSWORD: plinko_secret
+      POSTGRES_PASSWORD: sandip
       POSTGRES_DB: plinko
     volumes:
       - plinko_pgdata:/var/lib/postgresql/data

@@ -7,5 +7,5 @@ export function getPayoutMultiplier(binIndex: number): number {
   if (binIndex < 0 || binIndex >= PAYTABLE.length) {
     throw new Error(`Invalid binIndex: ${binIndex}`);
   }
-  return PAYTABLE[binIndex];
+  return PAYTABLE[binIndex]!;
 }

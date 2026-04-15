@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 
 
 export async function POST(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {

@@ -41,9 +41,12 @@ export function simulateRound(
   let pos = 0;
 
   for (let r = 0; r < ROWS; r++) {
-      
     const pegIndex = Math.min(pos, r);
-    const peg = pegMap[r][pegIndex];
+    const row = pegMap[r];
+    const peg = row?.[pegIndex];
+    if (!peg) {
+      throw new Error(`Missing peg at row ${r}, index ${pegIndex}`);
+    }
 
     
     let adjustedBias = peg.leftBias + adj;

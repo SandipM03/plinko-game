@@ -45,7 +45,7 @@ export function ConfettiEffect({ active }: { active: boolean }) {
          y,
          vx: (Math.random() - 0.5) * 15,
          vy: Math.random() * -15 - 5,
-         color: COLORS[Math.floor(Math.random() * COLORS.length)],
+         color: COLORS[Math.floor(Math.random() * COLORS.length)]!,
          size: Math.random() * 8 + 4,
          rotation: Math.random() * 360,
          rotationSpeed: (Math.random() - 0.5) * 10,
